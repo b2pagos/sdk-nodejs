@@ -1,0 +1,38 @@
+{
+  "name": "b2pagos-sdk",
+  "version": "1.0.0",
+  "description": "Node.js SDK for integrating with B2PAGOS payment gateway",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b2pagos/b2pagos-sdk.git"
+  },
+  "keywords": [
+    "b2pagos",
+    "api",
+    "payments",
+    "sdk",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "B2Pagos",
+  "bugs": {
+    "url": "https://github.com/b2pagos/sdk-nodejs/issues"
+  },
+  "homepage": "https://github.com/b2pagos/sdk-nodejs#readme",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.5.0",
+    "chalk": "^5.3.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.3",
+    "typescript": "^5.3.0"
+  }
+}

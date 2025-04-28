@@ -1,0 +1,31 @@
+# Ignore source files
+/src
+/test
+/__tests__/
+
+# Ignore configs and local setup
+/.vscode
+/.idea
+/tsconfig.json
+/tsconfig.build.json
+/tslint.json
+/jest.config.js
+/docker-compose.yml
+/Dockerfile
+
+# Ignore environment and secrets
+.env
+.env.*
+
+# Ignore docs not needed in package
+CHANGELOG.md
+README.md
+
+# Ignore build tools
+gulpfile.js
+webpack.config.js
+
+# Misc
+*.log
+coverage
+node_modules
