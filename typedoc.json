@@ -1,0 +1,10 @@
+{
+    "entryPoints": ["src/index.ts"],
+    "out": "docs",
+    "tsconfig": "tsconfig.json",
+    "name": "B2PAGOS SDK",
+    "readme": "README.md",
+    "includeVersion": true,
+    "hideGenerator": true
+  }
+  

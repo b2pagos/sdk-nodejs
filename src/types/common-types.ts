@@ -22,13 +22,6 @@ export interface CardData {
     creditCardSecurityCode: string;
 }
 
-export interface CreateSubscriptionParams {
-    customerId: string;
-    planId: string;
-    startDate: string;
-    metadata?: Record<string, any>;
-}
-
 export interface PaymentParams {
     amount: number;
     currency: string;
@@ -36,3 +29,43 @@ export interface PaymentParams {
     description?: string;
     metadata?: Record<string, any>;
 }
+
+// 🔹 Detalles de un suscriptor (response simplificado)
+export interface SubscriberDetails {
+    id: string;
+    name: string;
+    email: string;
+    subscriptionPlanId: string;
+    createdAt: string;
+    status: 'active' | 'paused' | 'canceled';
+}
+
+// 🔹 Pago relacionado a suscriptor
+export interface SubscriptionPayment {
+    id: string;
+    amount: number;
+    currency: string;
+    status: string;
+    paidAt: string;
+}
+
+export interface SubscriptionServiceContext {
+    baseUrl: string;
+    jwt?: string;
+    basicAuth?: {
+        username: string;
+        password: string;
+    };
+}
+
+export interface ApiContext {
+    pasarelaApi: string;
+    accountKey: string;
+    integrityKey: string;
+    username: string;
+    password: string;
+    rejectUnauthorizedSSL?: boolean;
+}
+
+export type B2PClientOptions = ApiContext;
+

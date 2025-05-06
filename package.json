@@ -1,10 +1,12 @@
 {
   "name": "b2pagos-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Node.js SDK for integrating with B2PAGOS payment gateway",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "docs": "typedoc",
+    "docs:deploy": "npx gh-pages -d docs",
     "build": "tsc"
   },
   "repository": {
@@ -33,6 +35,8 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.3",
+    "gh-pages": "^6.3.0",
+    "typedoc": "^0.28.4",
     "typescript": "^5.3.0"
   }
 }

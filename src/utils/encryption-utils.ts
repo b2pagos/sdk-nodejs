@@ -1,4 +1,4 @@
-import { createPublicKey, publicEncrypt } from 'crypto';
+import * as crypto from 'crypto';
 import axios from 'axios';
 
 /**
@@ -8,14 +8,14 @@ import axios from 'axios';
  * @returns Encrypted data in base64 format.
  */
 export function encryptRSA(data: string, publicKey: string): string {
-    const key = createPublicKey({
-        key: publicKey,
-        format: 'pem',
-    });
-
     const buffer = Buffer.from(data, 'utf-8');
-    const encrypted = publicEncrypt(key, buffer);
-
+    const encrypted = crypto.publicEncrypt(
+      {
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_PADDING,
+      },
+      buffer,
+    );
     return encrypted.toString('base64');
 }
 

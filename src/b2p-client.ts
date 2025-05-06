@@ -1,144 +1,158 @@
-import { Agent } from 'https';
-import axios, { AxiosInstance } from 'axios';
-import * as jwt from 'jsonwebtoken';
-import { encryptRSA, getPublicKey } from './utils/encryption-utils';
-import { generateSignature } from './utils/signature-utils';
-import { ApiRequestOptions, B2POptions, CardData, CreateSubscriptionParams, PaymentParams } from './types/common-types';
+import { B2PClientOptions } from './types/common-types';
+
+import * as SubscriptionService from './services/subscription-service';
+import * as SubscriptionPlanService from './services/subscription-plan-service';
+import * as CardService from './services/card-service';
+import * as UserPassService from './services/userpass-service';
+
+import { CreateSubscriptionParams, UpdateSubscriptionParams } from './types/subscription-types';
+import { TokenizeCardParams } from './types/card-types';
+import { CreateOrUpdateSubscriptionPlanParams } from './types/subscription-plan-types';
+import { CreateOrUpdatePaymentLinkParams, CreateOrUpdateTransactionParams, CreatePaymentParams } from './types/userpass-types';
 
 export class B2PClient {
-    private accountKey: string;
-    private integrityKey: string;
-    private username: string;
-    private password: string;
-    private pasarelaApi: string;
-    private httpsAgent: Agent;
-    private axiosInstance: AxiosInstance;
-    private token: string | undefined;
+    private readonly context: B2PClientOptions;
 
-    constructor(options: B2POptions) {
-        this.accountKey = options.accountKey;
-        this.integrityKey = options.integrityKey;
-        this.username = options.username;
-        this.password = options.password;
-        this.pasarelaApi = options.pasarelaApi;
-
-        this.httpsAgent = new Agent({ rejectUnauthorized: options.rejectUnauthorizedSSL ?? true });
-        this.axiosInstance = axios.create({ httpsAgent: this.httpsAgent });
-    }
-
-    async encryptCardData(cardData: CardData) {
-        const publicKey = await getPublicKey(this.pasarelaApi);
-        return {
-            creditcard_number: encryptRSA(cardData.creditCardNumber, publicKey),
-            creditcard_expirationdate: encryptRSA(cardData.creditCardExpirationDate, publicKey),
-            creditcard_securitycode: encryptRSA(cardData.creditCardSecurityCode, publicKey)
-        };
-    }
-
-    async createSubscription(subscriptionData: CreateSubscriptionParams) {
-        return this.apiRequest({
-            endpoint: '/subscriptions',
-            method: 'POST',
-            data: subscriptionData,
-            authType: 'JWT'
-        });
-    }
-
-    async capturePayment(paymentData: PaymentParams) {
-        return this.apiRequest({
-            endpoint: '/payments/capture',
-            method: 'POST',
-            data: paymentData,
-            authType: 'JWT'
-        });
-    }
-
-    async cancelSubscription(subscriptionId: string) {
-        return this.apiRequest({
-            endpoint: `/subscriptions/${subscriptionId}`,
-            method: 'DELETE',
-            authType: 'JWT'
-        });
-    }
-
-    async refundPayment(paymentId: string) {
-        return this.apiRequest({
-            endpoint: `/payments/${paymentId}/refund`,
-            method: 'POST',
-            authType: 'JWT'
-        });
-    }
-
-    async createTransaction(transactionData: {
-        accountId: string;
-        reference: string;
-        description: string;
-        amount: number;
-        taxValue: number;
-        taxBase: number;
-        currency: string;
-    }) {
-        const payload = {
-            account_id: transactionData.accountId,
-            reference: transactionData.reference,
-            description: transactionData.description,
-            total: transactionData.amount,
-            tax_value: transactionData.taxValue,
-            tax_base: transactionData.taxBase,
-            currency: transactionData.currency,
-        };
-
-        return this.apiRequest({
-            endpoint: '/paymentLink/transaction',
-            method: 'POST',
-            data: payload,
-            authType: 'USERPASS'
-        });
+    constructor(options: B2PClientOptions) {
+        this.context = options;
     }
 
     async getAccounts() {
-        return this.apiRequest({
-            endpoint: '/accounts',
-            method: 'GET',
-            authType: 'USERPASS'
-        });
+        return UserPassService.getAccounts(this.context);
     }
 
-    private async getJwt(): Promise<string> {
-        const payload = {
-            account_key: this.accountKey,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + 30,
-        };
-        return jwt.sign(payload, this.integrityKey, { algorithm: 'HS256' });
+    async getAccountByAccountKey() {
+        return UserPassService.getAccountByAccountKey(this.context);
     }
 
-    private async getUserToken(): Promise<string> {
-        const response = await this.axiosInstance.post(`${this.pasarelaApi}/get-access-token`, {
-            email: this.username,
-            password: this.password
-        });
-
-        this.token = response.data.data;
-        return this.token?.toString() || '';
+    async getPaymentMethods(accountId: number) {
+        return UserPassService.getPaymentMethods(this.context, accountId);
     }
 
-    private async apiRequest<T>({ endpoint, method, data, authType }: ApiRequestOptions): Promise<T> {
-        const headers: Record<string, string> = {};
+    async getCurrencies() {
+        return UserPassService.getCurrencies(this.context);
+    }
 
-        if (authType === 'JWT') {
-            headers['Authorization'] = `Bearer ${await this.getJwt()}`;
-        } else if (authType === 'USERPASS') {
-            headers['Authorization'] = `Bearer ${await this.getUserToken()}`;
-        }
+    async getTaxes() {
+        return UserPassService.getTaxes(this.context);
+    }
 
-        const response = await this.axiosInstance.request<T>({
-            url: `${this.pasarelaApi}${endpoint}`,
-            method,
-            data,
-            headers
-        });
+    async getCountries() {
+        return UserPassService.getCountries(this.context);
+    }
 
-        return response.data;
+    async getRegions(countryId: number) {
+        return UserPassService.getRegions(this.context, countryId);
+    }
+
+    async getCities(countryId: number, regionId: number) {
+        return UserPassService.getCities(this.context, countryId, regionId);
+    }
+
+    async getDocumentTypes() {
+        return UserPassService.getDocumentTypes(this.context);
+    }
+
+    async getPseBanks() {
+        return UserPassService.getPseBanks(this.context);
+    }
+
+    async getBanks() {
+        return UserPassService.getBanks(this.context);
+    }
+    async getCiiuCodes() {
+        return UserPassService.getCiiuCodes(this.context);
+    }
+
+    async createPaymentLink(data: CreateOrUpdatePaymentLinkParams) {
+        return UserPassService.createPaymentLink(this.context, data);
+    }
+
+    async getPaymentLinks(accountId: number, page: number = 1) {
+        return UserPassService.getPaymentLinks(this.context, accountId, page);
+    }
+
+    async createTransaction(data: CreateOrUpdateTransactionParams) {
+        return UserPassService.createTransaction(this.context, data);
+    }
+
+    async createPayWithPSE(data: CreatePaymentParams) {
+        return UserPassService.createPayWithPSE(this.context, data);
+    }
+
+    async getTransactionstatus(accountId: number, token: string) {
+        return UserPassService.getTransactionstatus(this.context, accountId, token);
+    }
+
+    async getSubscriptionPlans(page: number = 1, limit: number = 10) {
+        return SubscriptionPlanService.getSubscriptionPlans(this.context, page, limit);
+    }
+
+    async createSubscriptionPlan(plan: CreateOrUpdateSubscriptionPlanParams) {
+        return SubscriptionPlanService.createSubscriptionPlan(this.context, plan);
+    }
+
+    async getSubscriptionPlanById(planId: string) {
+        return SubscriptionPlanService.getSubscriptionPlanById(this.context, planId);
+    }
+
+    async updateSubscriptionPlan(planId: string, plan: CreateOrUpdateSubscriptionPlanParams) {
+        return SubscriptionPlanService.updateSubscriptionPlan(this.context, planId, plan);
+    }
+
+    async deleteSubscriptionPlan(planId: string) {
+        return SubscriptionPlanService.deleteSubscriptionPlan(this.context, planId);
+    }
+
+    async listTokenizedCards() {
+        return CardService.listTokenizedCards(this.context);
+    }
+
+    async tokenizeCard(data: TokenizeCardParams) {
+        return CardService.tokenizeCard(this.context, data);
+    }
+
+    async getTokenizedCard(tokenCard: string) {
+        return CardService.getTokenizedCard(this.context, tokenCard);
+    }
+
+    async deleteTokenizedCard(tokenCard: string) {
+        return CardService.deleteTokenizedCard(this.context, tokenCard);
+    }
+
+    async chargeTokenizedCard(tokenCard: string, payload: Record<string, any>) {
+        return CardService.chargeTokenizedCard(this.context, tokenCard, payload);
+    }
+
+    async setPrimaryCard(tokenCard: string) {
+        return CardService.setPrimaryCard(this.context, tokenCard);
+    }
+
+    async getSubscriptions(filters?: { subscriptionPlanId?: string; status?: string }) {
+        return SubscriptionService.getSubscriptions(this.context, filters);
+    }
+
+    async createSubscription(data: CreateSubscriptionParams) {
+        return SubscriptionService.createSubscription(this.context, data);
+    }
+
+    async getSubscriptionById(subscriptionId: string) {
+        return SubscriptionService.getSubscriptionById(this.context, subscriptionId);
+    }
+
+    async updateSubscription(subscriptionId: string, data: UpdateSubscriptionParams) {
+        return SubscriptionService.updateSubscription(this.context, subscriptionId, data);
+    }
+
+    async getSubscriptionPayments(subscriptionId: string) {
+        return SubscriptionService.getSubscriptionPayments(this.context, subscriptionId);
+    }
+
+    async getSubscriptionCards(subscriptionId: string) {
+        return SubscriptionService.getSubscriptionCards(this.context, subscriptionId);
+    }
+
+    async updateSubscriptionStatus(subscriptionId: string, action: 'active' | 'paused' | 'cancel') {
+        return SubscriptionService.updateSubscriptionStatus(this.context, subscriptionId, action);
     }
 }
