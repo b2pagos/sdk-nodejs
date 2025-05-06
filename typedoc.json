@@ -1,10 +1,16 @@
 {
-    "entryPoints": ["src/index.ts"],
-    "out": "docs",
-    "tsconfig": "tsconfig.json",
-    "name": "B2PAGOS SDK",
-    "readme": "README.md",
-    "includeVersion": true,
-    "hideGenerator": true
-  }
-  
+  "entryPoints": [
+    "src/index.ts",
+    "src/types/common-types.ts",
+    "src/types/card-types.ts",
+    "src/types/subscription-types.ts",
+    "src/types/subscription-plan-types.ts",
+    "src/types/userpass-types.ts"
+  ],
+  "out": "docs",
+  "tsconfig": "tsconfig.json",
+  "name": "B2PAGOS SDK",
+  "readme": "README.md",
+  "includeVersion": true,
+  "hideGenerator": true
+}
